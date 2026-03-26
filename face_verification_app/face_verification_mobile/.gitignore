@@ -57,3 +57,6 @@ app.*.map.json
 .pub/
 /build/
 ios/build/
+
+# Environment variables
+.env

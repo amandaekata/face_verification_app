@@ -7,11 +7,13 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 late List<CameraDescription> _cameras;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   _cameras = await availableCameras();
   runApp(const FaceVerificationApp());
 }
@@ -49,8 +51,8 @@ class _CameraScreenState extends State<CameraScreen>
   String? _verificationMessage;
   Color _verificationColor = Colors.white;
 
-  // TODO: Update to your backend server IP.
-  final String _backendUrl = 'http://172.20.10.5:8080/verify';
+  final String _backendUrl =
+      'http://${dotenv.env['BACKEND_IP']}:8080/verify';
 
   // ML Kit Face Detector
   final FaceDetector _faceDetector = FaceDetector(
