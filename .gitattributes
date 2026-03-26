@@ -1,0 +1,44 @@
+# Tell GitHub Linguist to ignore platform boilerplate in language stats
+
+# Flutter platform folders (Swift, Kotlin, ObjC, C++, CMake)
+**/ios/** linguist-generated
+**/android/** linguist-generated
+**/macos/** linguist-generated
+**/linux/** linguist-generated
+**/windows/** linguist-generated
+**/web/** linguist-generated
+
+# Xcode project files
+*.pbxproj linguist-generated
+*.xcscheme linguist-generated
+*.xcworkspacedata linguist-generated
+*.plist linguist-generated
+*.storyboard linguist-generated
+
+# Gradle / build configs
+*.gradle linguist-generated
+*.gradle.kts linguist-generated
+gradle-wrapper.properties linguist-generated
+
+# CMake
+*.cmake linguist-generated
+CMakeLists.txt linguist-generated
+
+# Generated Dart
+*.g.dart linguist-generated
+*.freezed.dart linguist-generated
+
+# Asset / resource files
+*.png linguist-generated
+*.jpg linguist-generated
+*.ico linguist-generated
+
+# Lock files
+Podfile.lock linguist-generated
+*.lock linguist-generated
+
+# Shell scripts (Flutter generated)
+*.sh linguist-generated
+
+# HTML (Flutter web)
+*.html linguist-generated
