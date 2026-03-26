@@ -115,7 +115,7 @@ func cosineSimilarity(a, b []float64) float64 {
 
 // ── Main ───────────────────────────────────────────────────────────────
 
-const similarityThreshold = 0.5
+const similarityThreshold = 0.7
 
 func main() {
 	// ── Configuration ──────────────────────────────────────────────────

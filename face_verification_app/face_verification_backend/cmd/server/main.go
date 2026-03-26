@@ -31,7 +31,7 @@ import (
 // ── Configuration ──────────────────────────────────────────────────────
 
 const (
-	similarityThreshold = 0.5
+	similarityThreshold = 0.7
 	serverPort          = ":8080"
 	// For the PoC, the "stored" profile photo is a local file.
 	// In production this would come from a database / cloud storage.
