@@ -148,31 +148,82 @@ class _CameraScreenState extends State<CameraScreen>
   InputImage? _convertCameraImage(CameraImage image) {
     final camera = _cameraController!.description;
 
-    final rotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation);
+    final rotation =
+        InputImageRotationValue.fromRawValue(camera.sensorOrientation);
     if (rotation == null) return null;
-
-    final format = InputImageFormatValue.fromRawValue(image.format.raw);
-    if (format == null ||
-        (Platform.isAndroid && format != InputImageFormat.nv21) ||
-        (Platform.isIOS && format != InputImageFormat.bgra8888)) return null;
-
     if (image.planes.isEmpty) return null;
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in image.planes) {
-      final bytesList = plane.bytes;
-      allBytes.putUint8List(bytesList is Uint8List ? bytesList : Uint8List.fromList(bytesList));
+
+    final size = Size(image.width.toDouble(), image.height.toDouble());
+
+    if (Platform.isAndroid) {
+      if (image.planes.length < 3) return null;
+      final nv21 = _yuv420ToNv21(image);
+      return InputImage.fromBytes(
+        bytes: nv21,
+        metadata: InputImageMetadata(
+          size: size,
+          rotation: rotation,
+          format: InputImageFormat.nv21,
+          bytesPerRow: image.width,
+        ),
+      );
     }
-    final bytes = allBytes.done().buffer.asUint8List();
+
+    // iOS — bgra8888
+    final format = InputImageFormatValue.fromRawValue(image.format.raw);
+    if (format == null || format != InputImageFormat.bgra8888) return null;
+
+    final allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
 
     return InputImage.fromBytes(
-      bytes: bytes,
+      bytes: allBytes.done().buffer.asUint8List(),
       metadata: InputImageMetadata(
-        size: Size(image.width.toDouble(), image.height.toDouble()),
+        size: size,
         rotation: rotation,
         format: format,
         bytesPerRow: image.planes.first.bytesPerRow,
       ),
     );
+  }
+
+  Uint8List _yuv420ToNv21(CameraImage image) {
+    final int width = image.width;
+    final int height = image.height;
+    final int halfW = width ~/ 2;
+    final int halfH = height ~/ 2;
+
+    final yPlane = image.planes[0];
+    final uPlane = image.planes[1];
+    final vPlane = image.planes[2];
+
+    final int uvPixelStride = uPlane.bytesPerPixel ?? 1;
+    final int uvRowStride = uPlane.bytesPerRow;
+
+    final nv21 = Uint8List(width * height + halfW * halfH * 2);
+    int pos = 0;
+
+    // Y plane — strip row‑stride padding
+    for (int row = 0; row < height; row++) {
+      final int rowStart = row * yPlane.bytesPerRow;
+      for (int col = 0; col < width; col++) {
+        nv21[pos++] = yPlane.bytes[rowStart + col];
+      }
+    }
+
+    // VU interleaved (NV21 order)
+    for (int row = 0; row < halfH; row++) {
+      final int rowStart = row * uvRowStride;
+      for (int col = 0; col < halfW; col++) {
+        final int idx = rowStart + col * uvPixelStride;
+        nv21[pos++] = vPlane.bytes[idx];
+        nv21[pos++] = uPlane.bytes[idx];
+      }
+    }
+
+    return nv21;
   }
 
   Future<void> _verifyFace() async {
